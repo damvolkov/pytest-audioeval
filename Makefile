@@ -43,11 +43,13 @@ build:
 	@rm -rf dist/
 	@uv build
 
-publish-test:
-	@uv publish --publish-url https://test.pypi.org/legacy/
+publish-test: lint test-unit build
+	@test -n "$(PYPI_API_TOKEN)" || (echo "ERROR: PYPI_API_TOKEN not set" && exit 1)
+	@uv publish --publish-url https://test.pypi.org/legacy/ --token $(PYPI_API_TOKEN)
 
-publish:
-	@uv publish
+publish: lint test-unit build
+	@test -n "$(PYPI_API_TOKEN)" || (echo "ERROR: PYPI_API_TOKEN not set" && exit 1)
+	@uv publish --token $(PYPI_API_TOKEN)
 
 ##### DOCKER — INTEGRATION SERVICES #####
 
