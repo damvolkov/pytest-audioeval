@@ -836,6 +836,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#pytest_audioeval.client.AudioEval.create_sample" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        create_sample
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#pytest_audioeval.client.AudioEval.aclose" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1244,6 +1255,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#pytest_audioeval.client.AudioEval.create_sample" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        create_sample
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#pytest_audioeval.client.AudioEval.aclose" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1365,6 +1387,160 @@
 <div class="doc doc-object doc-function">
 
 
+<h4 id="pytest_audioeval.client.AudioEval.create_sample" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">create_sample</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+<a href="#pytest_audioeval.client.AudioEval.create_sample" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">create_sample</span><span class="p">(</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="o">*</span><span class="p">,</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">lang</span><span class="p">:</span> <span class="n">SampleLang</span> <span class="o">=</span> <span class="n">SampleLang</span><span class="o">.</span><span class="n">EN</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">target_rate</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16000</span><span class="p">,</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">tts_json</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AudioSample</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Generate an AudioSample on-the-fly using the TTS service.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>text</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Text to synthesize.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>lang</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="SampleLang (pytest_audioeval.samples.registry.SampleLang)" href="../samples/registry/#pytest_audioeval.samples.registry.SampleLang">SampleLang</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Language tag for the sample.</p>
+              </div>
+            </td>
+            <td>
+                  <code><span title="pytest_audioeval.samples.registry.SampleLang.EN">EN</span></code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>name</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Sample name (auto-generated from text if omitted).</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>target_rate</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Target sample rate in Hz (resampled from TTS output).</p>
+              </div>
+            </td>
+            <td>
+                  <code>16000</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>tts_json</code>
+            </td>
+            <td>
+                  <code><span title="dict">dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>] | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Full TTS payload override. If omitted, uses sensible defaults.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="AudioSample
+
+
+  
+      dataclass
+   (pytest_audioeval.samples.registry.AudioSample)" href="../samples/registry/#pytest_audioeval.samples.registry.AudioSample">AudioSample</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>AudioSample ready for STT testing, auto-registered in the catalog.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
 <h4 id="pytest_audioeval.client.AudioEval.aclose" class="doc doc-heading">
             <span class="doc doc-object-name doc-function-name">aclose</span>
 
@@ -1379,7 +1555,7 @@
 
     <div class="doc doc-contents ">
 
-        <p>Cleanup clients.</p>
+        <p>Cleanup clients and temp files.</p>
 
 
     </div>
