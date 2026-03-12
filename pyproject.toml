@@ -51,6 +51,7 @@ dev = [
     "pytest-rerunfailures>=14.0",
     "ruff>=0.9",
     "orjson>=3.10",
+    "pytest-audioeval",
 ]
 docs = [
     "mkdocs-gen-files>=0.6.0",
@@ -89,3 +90,6 @@ line-length = 120
 
 [tool.ruff.lint]
 select = ["E", "W", "F", "I", "UP", "B", "SIM"]
+
+[tool.uv.sources]
+pytest-audioeval = { workspace = true }

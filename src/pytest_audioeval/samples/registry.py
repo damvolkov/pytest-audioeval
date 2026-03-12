@@ -17,6 +17,17 @@ class SampleLang(StrEnum):
     ES = auto()
     FR = auto()
     DE = auto()
+    PT = auto()
+    IT = auto()
+    RU = auto()
+    ZH = auto()
+    JA = auto()
+    KO = auto()
+    AR = auto()
+    HI = auto()
+    NL = auto()
+    PL = auto()
+    TR = auto()
 
 
 @dataclass(slots=True, frozen=True)
