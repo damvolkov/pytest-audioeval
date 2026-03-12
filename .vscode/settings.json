@@ -1,0 +1,9 @@
+{
+    "python.testing.pytestArgs": [
+        "tests",
+        "--stt-url=ws://localhost:45120",
+        "--tts-url=http://localhost:45130/v1/audio/speech"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true
+}

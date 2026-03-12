@@ -1,0 +1,59 @@
+services:
+  tts:
+    image: ghcr.io/remsky/kokoro-fastapi-gpu:latest
+    container_name: audioeval-tts
+    hostname: tts
+    restart: unless-stopped
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    ports:
+      - "${TTS_PORT:-45130}:8880"
+    volumes:
+      - tts-voices:/app/voices
+    environment:
+      - OUTPUT_FORMAT=mp3
+      - DEFAULT_VOICE=${TTS_DEFAULT_VOICE:-af_heart}
+      - USE_GPU=true
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8880/v1/models || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  stt:
+    image: ghcr.io/collabora/whisperlive-gpu:latest
+    container_name: audioeval-stt
+    hostname: stt
+    restart: unless-stopped
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    ports:
+      - "${STT_PORT:-45120}:9090"
+    volumes:
+      - stt-models:/root/.cache/huggingface
+    environment:
+      - WHISPER_MODEL=${STT_WHISPER_MODEL:-large-v3-turbo}
+      - PROVIDER=cuda
+    healthcheck:
+      test: ["CMD", "python", "-c", "import asyncio,websockets; asyncio.run(websockets.connect('ws://localhost:9090').__aenter__())"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
+volumes:
+  tts-voices:
+  stt-models:
