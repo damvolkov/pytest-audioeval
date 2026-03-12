@@ -23,7 +23,6 @@ async def test_TTSClient_post_returns_response(mocker: MockerFixture) -> None:
     response = await client.post(json={"input": "hello", "model": "kokoro"})
 
     assert response is mock_response
-    await client.aclose()
 
 
 async def test_TTSClient_post_raises_on_error(mocker: MockerFixture) -> None:
@@ -38,7 +37,6 @@ async def test_TTSClient_post_raises_on_error(mocker: MockerFixture) -> None:
     client = TTSClient(url="http://fake:8880")
     with pytest.raises(httpx.HTTPStatusError):
         await client.post(json={"bad": "payload"})
-    await client.aclose()
 
 
 ##### TTS STREAM #####
@@ -70,7 +68,6 @@ async def test_TTSClient_stream_yields_response(mocker: MockerFixture) -> None:
             received.append(chunk)
 
     assert received == chunks
-    await client.aclose()
 
 
 ##### TTS SSE #####
@@ -94,18 +91,32 @@ async def test_TTSClient_sse_yields_event_source(mocker: MockerFixture) -> None:
     # Verify Accept header was set
     _, kwargs = mock_stream.call_args
     assert kwargs["headers"]["Accept"] == "text/event-stream"
-    await client.aclose()
+
+
+##### TTS WEBSOCKET #####
+
+
+async def test_TTSClient_ws_yields_session(mocker: MockerFixture) -> None:
+    """ws() yields AsyncWebSocketSession."""
+    mock_ws_session = mocker.AsyncMock()
+    mock_cm = mocker.AsyncMock()
+    mock_cm.__aenter__ = mocker.AsyncMock(return_value=mock_ws_session)
+    mock_cm.__aexit__ = mocker.AsyncMock(return_value=False)
+
+    mocker.patch("pytest_audioeval.tts.AsyncWebSocketClient.connect", return_value=mock_cm)
+
+    client = TTSClient(url="ws://fake:8880")
+    async with client.ws() as session:
+        assert session is mock_ws_session
 
 
 ##### TTS ACLOSE #####
 
 
-async def test_TTSClient_aclose(mocker: MockerFixture) -> None:
-    """aclose() closes httpx client."""
-    mock_aclose = mocker.patch.object(httpx.AsyncClient, "aclose", return_value=None)
+async def test_TTSClient_aclose_is_noop() -> None:
+    """aclose() is a no-op (clients created per-call)."""
     client = TTSClient(url="http://fake:8880")
     await client.aclose()
-    mock_aclose.assert_awaited_once()
 
 
 async def test_TTSClient_slots() -> None:
@@ -114,4 +125,3 @@ async def test_TTSClient_slots() -> None:
     assert hasattr(client, "__slots__")
     with pytest.raises(AttributeError):
         client.nonexistent = True  # type: ignore[attr-defined]
-    await client.aclose()

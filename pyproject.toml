@@ -49,12 +49,20 @@ dev = [
     "ruff>=0.9",
     "orjson>=3.10",
 ]
+docs = [
+    "mkdocs-gen-files>=0.6.0",
+    "mkdocs-literate-nav>=0.6.2",
+    "mkdocs-material>=9.7.5",
+    "mkdocs-section-index>=0.3.10",
+    "mkdocstrings[python]>=1.0.3",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/pytest_audioeval"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
 testpaths = ["tests"]
 addopts = ["--import-mode=importlib"]
 

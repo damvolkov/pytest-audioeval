@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import httpx
 import pytest
 from pytest_mock import MockerFixture
 
@@ -154,7 +155,92 @@ async def test_STTSession_result_with_sample(mocker: MockerFixture) -> None:
     assert result.text_metrics.wer == 0.0
 
 
-##### STT CLIENT #####
+##### STT CLIENT — POST #####
+
+
+async def test_STTClient_post_returns_response(mocker: MockerFixture) -> None:
+    """post() returns httpx.Response."""
+    mock_response = mocker.MagicMock(spec=httpx.Response)
+    mock_response.status_code = 200
+    mock_response.raise_for_status = mocker.MagicMock()
+
+    mocker.patch.object(httpx.AsyncClient, "post", return_value=mock_response)
+
+    client = STTClient(url="http://fake:9090/v1/audio/transcriptions")
+    response = await client.post(data=b"audio-bytes")
+
+    assert response is mock_response
+
+
+async def test_STTClient_post_raises_on_error(mocker: MockerFixture) -> None:
+    """post() propagates HTTP errors."""
+    mock_response = mocker.MagicMock(spec=httpx.Response)
+    mock_response.raise_for_status = mocker.MagicMock(
+        side_effect=httpx.HTTPStatusError("422", request=mocker.MagicMock(), response=mock_response),
+    )
+
+    mocker.patch.object(httpx.AsyncClient, "post", return_value=mock_response)
+
+    client = STTClient(url="http://fake:9090")
+    with pytest.raises(httpx.HTTPStatusError):
+        await client.post(data=b"bad-audio")
+
+
+##### STT CLIENT — STREAM #####
+
+
+async def test_STTClient_stream_yields_response(mocker: MockerFixture) -> None:
+    """stream() yields httpx.Response for chunked reading."""
+    chunks = [b"chunk1", b"chunk2"]
+
+    mock_response = mocker.AsyncMock(spec=httpx.Response)
+    mock_response.raise_for_status = mocker.MagicMock()
+
+    async def aiter_bytes():
+        for c in chunks:
+            yield c
+
+    mock_response.aiter_bytes = aiter_bytes
+
+    mock_cm = mocker.AsyncMock()
+    mock_cm.__aenter__ = mocker.AsyncMock(return_value=mock_response)
+    mock_cm.__aexit__ = mocker.AsyncMock(return_value=False)
+
+    mocker.patch.object(httpx.AsyncClient, "stream", return_value=mock_cm)
+
+    client = STTClient(url="http://fake:9090")
+    received: list[bytes] = []
+    async with client.stream(data=b"audio") as response:
+        async for chunk in response.aiter_bytes():
+            received.append(chunk)
+
+    assert received == chunks
+
+
+##### STT CLIENT — SSE #####
+
+
+async def test_STTClient_sse_yields_event_source(mocker: MockerFixture) -> None:
+    """sse() yields EventSource wrapping the streaming response."""
+    mock_response = mocker.AsyncMock(spec=httpx.Response)
+    mock_response.raise_for_status = mocker.MagicMock()
+
+    mock_cm = mocker.AsyncMock()
+    mock_cm.__aenter__ = mocker.AsyncMock(return_value=mock_response)
+    mock_cm.__aexit__ = mocker.AsyncMock(return_value=False)
+
+    mock_stream = mocker.patch.object(httpx.AsyncClient, "stream", return_value=mock_cm)
+
+    client = STTClient(url="http://fake:9090")
+    async with client.sse(data=b"audio") as event_source:
+        assert event_source is not None
+
+    # Verify Accept header was set
+    _, kwargs = mock_stream.call_args
+    assert kwargs["headers"]["Accept"] == "text/event-stream"
+
+
+##### STT CLIENT — WEBSOCKET #####
 
 
 async def test_STTClient_ws_context(mocker: MockerFixture) -> None:
@@ -169,7 +255,6 @@ async def test_STTClient_ws_context(mocker: MockerFixture) -> None:
     client = STTClient(url="ws://fake:9090")
     async with client.ws() as session:
         assert isinstance(session, STTSession)
-    await client.aclose()
 
 
 async def test_STTClient_ws_with_sample(mocker: MockerFixture) -> None:
@@ -186,14 +271,20 @@ async def test_STTClient_ws_with_sample(mocker: MockerFixture) -> None:
     client = STTClient(url="ws://fake:9090")
     async with client.ws(sample=sample) as session:
         assert session._sample is sample
-    await client.aclose()
 
 
-async def test_STTClient_aclose(mocker: MockerFixture) -> None:
-    """aclose() closes httpx client."""
-    import httpx
+##### STT CLIENT — ACLOSE #####
 
-    mock_aclose = mocker.patch.object(httpx.AsyncClient, "aclose", return_value=None)
+
+async def test_STTClient_aclose_is_noop() -> None:
+    """aclose() is a no-op (clients created per-call)."""
     client = STTClient(url="ws://fake:9090")
     await client.aclose()
-    mock_aclose.assert_awaited_once()
+
+
+async def test_STTClient_slots() -> None:
+    """STTClient uses __slots__."""
+    client = STTClient(url="ws://fake:9090")
+    assert hasattr(client, "__slots__")
+    with pytest.raises(AttributeError):
+        client.nonexistent = True  # type: ignore[attr-defined]

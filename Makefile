@@ -1,4 +1,4 @@
-.PHONY: install sync lint test test-unit test-integration coverage generate-samples infra-up infra-down infra-logs infra-status
+.PHONY: install sync lint test test-unit test-integration coverage generate-samples docs docs-serve infra-up infra-down infra-logs infra-status
 
 install:
 	@uv sync --dev
@@ -25,6 +25,14 @@ coverage:
 
 generate-samples:
 	@uv run python scripts/generate_samples.py
+
+##### DOCUMENTATION #####
+
+docs:
+	@uv run mkdocs build --strict
+
+docs-serve:
+	@uv run mkdocs serve
 
 ##### DOCKER — INTEGRATION SERVICES #####
 

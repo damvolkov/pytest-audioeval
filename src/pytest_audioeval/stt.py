@@ -1,4 +1,4 @@
-"""STT evaluation client — httpx-ws under the hood."""
+"""STT evaluation client — httpx + httpx-ws + httpx-sse under the hood."""
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ from dataclasses import dataclass, field
 from typing import Any, Self
 
 import httpx
+from httpx_sse import EventSource
 from httpx_ws import AsyncWebSocketClient, AsyncWebSocketSession
 
 from pytest_audioeval.metrics.text import TextMetrics
@@ -85,21 +86,50 @@ class STTSession:
 
 
 class STTClient:
-    """STT evaluation client — wraps httpx-ws."""
+    """STT evaluation client — HTTP batch + WebSocket streaming."""
 
-    __slots__ = ("_client", "_url", "_ws_client")
+    __slots__ = ("_timeout", "_url")
 
-    def __init__(self, *, url: str) -> None:
+    def __init__(self, *, url: str, timeout: float = 30.0) -> None:
         self._url = url
-        self._client = httpx.AsyncClient()
-        self._ws_client = AsyncWebSocketClient(self._client, keepalive_ping_interval_seconds=None)
+        self._timeout = timeout
+
+    async def post(self, *, data: bytes | None = None, **kwargs: Any) -> httpx.Response:
+        """Batch POST audio to STT endpoint (e.g. OpenAI Whisper API). Returns raw httpx.Response."""
+        async with httpx.AsyncClient(timeout=self._timeout) as client:
+            response = await client.post(self._url, content=data, **kwargs)
+        response.raise_for_status()
+        return response
+
+    @asynccontextmanager
+    async def stream(self, *, data: bytes | None = None, **kwargs: Any) -> AsyncIterator[httpx.Response]:
+        """Chunked streaming POST. Yields httpx.Response for aiter_bytes/aiter_lines."""
+        async with (
+            httpx.AsyncClient(timeout=self._timeout) as client,
+            client.stream("POST", self._url, content=data, **kwargs) as response,
+        ):
+            response.raise_for_status()
+            yield response
+
+    @asynccontextmanager
+    async def sse(self, *, data: bytes | None = None, **kwargs: Any) -> AsyncIterator[EventSource]:
+        """SSE streaming POST. Yields EventSource for aiter_sse()."""
+        headers = kwargs.pop("headers", {})
+        headers["Accept"] = "text/event-stream"
+        async with (
+            httpx.AsyncClient(timeout=self._timeout) as client,
+            client.stream("POST", self._url, content=data, headers=headers, **kwargs) as response,
+        ):
+            response.raise_for_status()
+            yield EventSource(response)
 
     @asynccontextmanager
     async def ws(self, *, sample: AudioSample | None = None, **kwargs: Any) -> AsyncIterator[STTSession]:
-        """Open WebSocket session for STT streaming."""
-        async with self._ws_client.connect(self._url, **kwargs) as session:
-            yield STTSession(session=session, sample=sample)
+        """Open WebSocket session for STT streaming (e.g. WhisperLive)."""
+        async with httpx.AsyncClient() as client:
+            ws_client = AsyncWebSocketClient(client, keepalive_ping_interval_seconds=None)
+            async with ws_client.connect(self._url, **kwargs) as session:
+                yield STTSession(session=session, sample=sample)
 
     async def aclose(self) -> None:
-        """Cleanup HTTP client."""
-        await self._client.aclose()
+        """No-op — clients are created per-call."""

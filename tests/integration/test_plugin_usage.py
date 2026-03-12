@@ -14,6 +14,7 @@ import uuid
 
 import numpy as np
 import orjson as json
+import pytest
 import soundfile as sf
 
 from pytest_audioeval.client import AudioEval
@@ -49,6 +50,42 @@ def _resample(audio: np.ndarray, from_rate: int, to_rate: int) -> np.ndarray:
     new_len = int(duration * to_rate)
     indices = np.linspace(0, len(audio) - 1, new_len)
     return np.interp(indices, np.arange(len(audio)), audio).astype(np.float32)
+
+
+##### STT — BATCH (HTTP POST) #####
+
+
+async def test_user_stt_batch() -> None:
+    """audioeval.stt.post() — send audio via HTTP POST, get transcript back.
+
+    For HTTP-based STT APIs (e.g. OpenAI Whisper API, faster-whisper-server).
+    WhisperLive is WS-only, so this is skipped here.
+    """
+    pytest.skip("WhisperLive does not expose an HTTP POST endpoint — use stt.ws() instead")
+
+
+##### STT — CHUNKED STREAMING #####
+
+
+async def test_user_stt_streaming() -> None:
+    """audioeval.stt.stream() — chunked HTTP streaming for STT.
+
+    For STT servers that return transcription as chunked HTTP responses.
+    WhisperLive is WS-only, so this is skipped here.
+    """
+    pytest.skip("WhisperLive does not expose an HTTP streaming endpoint — use stt.ws() instead")
+
+
+##### STT — SSE #####
+
+
+async def test_user_stt_sse() -> None:
+    """audioeval.stt.sse() — Server-Sent Events streaming for STT.
+
+    For STT servers that return transcription as SSE events.
+    WhisperLive is WS-only, so this is skipped here.
+    """
+    pytest.skip("WhisperLive does not expose an SSE endpoint — use stt.ws() instead")
 
 
 ##### STT — WEBSOCKET #####
@@ -110,7 +147,7 @@ async def test_user_stt_result() -> None:
     assert result.text_metrics.wer == 0.0
 
 
-##### TTS — BATCH POST #####
+##### TTS — BATCH (HTTP POST) #####
 
 
 async def test_user_tts_batch(audioeval: AudioEval) -> None:
@@ -154,22 +191,25 @@ async def test_user_tts_streaming(audioeval: AudioEval) -> None:
 ##### TTS — SSE #####
 
 
-async def test_user_tts_sse(audioeval: AudioEval) -> None:
-    """audioeval.tts.sse() — Server-Sent Events streaming."""
-    assert audioeval.tts is not None, "--tts-url required"
+async def test_user_tts_sse() -> None:
+    """audioeval.tts.sse() — Server-Sent Events streaming.
 
-    payload = {
-        "input": "SSE test.",
-        "model": "kokoro",
-        "voice": "af_heart",
-        "response_format": "wav",
-        "stream": True,
-    }
-    events: list[bytes] = []
-    async with audioeval.tts.sse(json=payload) as event_source:
-        async for sse in event_source.aiter_sse():
-            events.append(sse.data.encode())
-    assert len(events) > 0
+    Kokoro returns audio/wav, not text/event-stream, so this is skipped here.
+    For TTS servers that support SSE (e.g. custom OpenAI-compatible endpoints).
+    """
+    pytest.skip("Kokoro does not support SSE — returns audio/wav instead of text/event-stream")
+
+
+##### TTS — WEBSOCKET #####
+
+
+async def test_user_tts_ws() -> None:
+    """audioeval.tts.ws() — WebSocket session for TTS streaming.
+
+    For TTS servers that accept text over WebSocket and stream audio back.
+    Kokoro does not expose a WebSocket endpoint, so this is skipped here.
+    """
+    pytest.skip("Kokoro does not expose a WebSocket endpoint — use tts.post() or tts.stream() instead")
 
 
 ##### ROUNDTRIP — TTS → STT #####
