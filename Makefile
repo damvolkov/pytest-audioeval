@@ -1,4 +1,4 @@
-.PHONY: install sync lint test test-unit test-integration coverage generate-samples docs docs-serve infra-up infra-down infra-logs infra-status
+.PHONY: install sync lint test test-unit test-integration coverage generate-samples docs docs-serve docs-deploy build publish publish-test infra-up infra-down infra-logs infra-status
 
 install:
 	@uv sync --dev
@@ -33,6 +33,21 @@ docs:
 
 docs-serve:
 	@uv run mkdocs serve
+
+docs-deploy:
+	@uv run mkdocs gh-deploy --force
+
+##### PUBLISHING #####
+
+build:
+	@rm -rf dist/
+	@uv build
+
+publish-test:
+	@uv publish --publish-url https://test.pypi.org/legacy/
+
+publish:
+	@uv publish
 
 ##### DOCKER — INTEGRATION SERVICES #####
 

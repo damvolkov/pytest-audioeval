@@ -34,7 +34,10 @@ dependencies = [
 ]
 
 [project.urls]
+Homepage = "https://damvolkov.github.io/pytest-audioeval"
+Documentation = "https://damvolkov.github.io/pytest-audioeval"
 Repository = "https://github.com/damvolkov/pytest-audioeval"
+Changelog = "https://damvolkov.github.io/pytest-audioeval/changelog/"
 
 [project.entry-points."pytest11"]
 audioeval = "pytest_audioeval.plugin"
