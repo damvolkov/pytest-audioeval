@@ -56,6 +56,13 @@ class AudioSample:
         samples_per_chunk = (self.sample_rate * chunk_ms) // 1000
         return [data[i : i + samples_per_chunk].tobytes() for i in range(0, len(data), samples_per_chunk)]
 
+    def chunks_pcm16(self, chunk_ms: int = 200) -> list[bytes]:
+        """Split audio into PCM16 (int16) chunks for streaming. O(n/chunk_size)."""
+        data = self.audio_numpy()
+        pcm16 = (data * 32767).astype(np.int16)
+        samples_per_chunk = (self.sample_rate * chunk_ms) // 1000
+        return [pcm16[i : i + samples_per_chunk].tobytes() for i in range(0, len(pcm16), samples_per_chunk)]
+
 
 _SAMPLES_DIR = Path(__file__).resolve().parent / "audio"
 

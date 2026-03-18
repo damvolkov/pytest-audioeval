@@ -9,7 +9,7 @@ import pytest
 from pytest_mock import MockerFixture
 
 from pytest_audioeval.samples.registry import AudioSample, SampleLang, SampleRegistry
-from pytest_audioeval.stt import STTClient, STTResult, STTSession
+from pytest_audioeval.stt import AudioEncoding, STTClient, STTResult, STTSession
 
 ##### STT RESULT #####
 
@@ -108,8 +108,8 @@ async def test_STTSession_receive_bytes(mocker: MockerFixture) -> None:
     assert data == b"binary-data"
 
 
-async def test_STTSession_send_sample(mocker: MockerFixture) -> None:
-    """send_sample() streams chunks with pacing."""
+async def test_STTSession_send_sample_float32(mocker: MockerFixture) -> None:
+    """send_sample() default FLOAT32 sends binary frames."""
     mock_ws = mocker.AsyncMock()
     sample = AudioSample(
         name="test",
@@ -123,6 +123,52 @@ async def test_STTSession_send_sample(mocker: MockerFixture) -> None:
     await session.send_sample(sample, chunk_ms=200)
 
     assert mock_ws.send_bytes.await_count > 0
+    mock_ws.send_text.assert_not_awaited()
+
+
+async def test_STTSession_send_sample_pcm16(mocker: MockerFixture) -> None:
+    """send_sample() PCM16 sends binary frames with int16 data."""
+    mock_ws = mocker.AsyncMock()
+    sample = AudioSample(
+        name="test",
+        lang=SampleLang.EN,
+        reference_text="test",
+        audio_path=SampleRegistry().en_hello_world.audio_path,
+    )
+
+    session = STTSession(session=mock_ws, sample=None)
+    mocker.patch("pytest_audioeval.stt.asyncio.sleep", return_value=None)
+    await session.send_sample(sample, chunk_ms=200, encoding=AudioEncoding.PCM16)
+
+    assert mock_ws.send_bytes.await_count > 0
+    first_chunk = mock_ws.send_bytes.call_args_list[0][0][0]
+    samples_per_chunk = (16_000 * 200) // 1000
+    assert len(first_chunk) == samples_per_chunk * 2  # int16 = 2 bytes
+    mock_ws.send_text.assert_not_awaited()
+
+
+async def test_STTSession_send_sample_pcm16_base64(mocker: MockerFixture) -> None:
+    """send_sample() PCM16_BASE64 sends text frames with base64-encoded int16."""
+    mock_ws = mocker.AsyncMock()
+    sample = AudioSample(
+        name="test",
+        lang=SampleLang.EN,
+        reference_text="test",
+        audio_path=SampleRegistry().en_hello_world.audio_path,
+    )
+
+    session = STTSession(session=mock_ws, sample=None)
+    mocker.patch("pytest_audioeval.stt.asyncio.sleep", return_value=None)
+    await session.send_sample(sample, chunk_ms=200, encoding=AudioEncoding.PCM16_BASE64)
+
+    assert mock_ws.send_text.await_count > 0
+    mock_ws.send_bytes.assert_not_awaited()
+    # Verify it's valid base64
+    import base64
+    first_text = mock_ws.send_text.call_args_list[0][0][0]
+    decoded = base64.b64decode(first_text)
+    samples_per_chunk = (16_000 * 200) // 1000
+    assert len(decoded) == samples_per_chunk * 2
 
 
 async def test_STTSession_result_no_sample(mocker: MockerFixture) -> None:

@@ -20,7 +20,7 @@ import soundfile as sf
 from pytest_audioeval.client import AudioEval
 from pytest_audioeval.metrics.text import TextMetrics
 from pytest_audioeval.samples.registry import SampleLang
-from pytest_audioeval.stt import STTResult
+from pytest_audioeval.stt import AudioEncoding, STTResult
 
 _DIGIT_TO_WORD = {
     "1": "one",
@@ -111,7 +111,7 @@ async def test_user_stt_ws(audioeval: AudioEval) -> None:
         ready = await session.receive_text()
         assert "SERVER_READY" in ready
 
-        await session.send_sample(sample, chunk_ms=200)
+        await session.send_sample(sample, chunk_ms=200, encoding=AudioEncoding.PCM16_BASE64)
         await asyncio.sleep(2)
         await session.send_text("END_OF_AUDIO")
 

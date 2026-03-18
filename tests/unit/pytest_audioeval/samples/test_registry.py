@@ -85,6 +85,15 @@ async def test_AudioSample_chunks(sample_hello_world: AudioSample) -> None:
     assert len(chunks[0]) == bytes_per_chunk
 
 
+async def test_AudioSample_chunks_pcm16(sample_hello_world: AudioSample) -> None:
+    """chunks_pcm16() returns int16 PCM chunks."""
+    chunks = sample_hello_world.chunks_pcm16(chunk_ms=200)
+    assert len(chunks) >= 1
+    samples_per_chunk = (16_000 * 200) // 1000
+    bytes_per_chunk = samples_per_chunk * 2  # int16 = 2 bytes
+    assert len(chunks[0]) == bytes_per_chunk
+
+
 async def test_AudioSample_audio_bytes(sample_hello_world: AudioSample) -> None:
     """Raw file bytes are non-empty."""
     raw = sample_hello_world.audio_bytes()

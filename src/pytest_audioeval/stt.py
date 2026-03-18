@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import asyncio
+import base64
 import time
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
+from enum import StrEnum, auto
 from typing import Any, Self
 
 import httpx
@@ -15,6 +17,14 @@ from httpx_ws import AsyncWebSocketClient, AsyncWebSocketSession
 
 from pytest_audioeval.metrics.text import TextMetrics
 from pytest_audioeval.samples.registry import AudioSample
+
+
+class AudioEncoding(StrEnum):
+    """Wire encoding for WebSocket audio frames."""
+
+    FLOAT32 = auto()
+    PCM16 = auto()
+    PCM16_BASE64 = auto()
 
 
 @dataclass(slots=True)
@@ -59,11 +69,34 @@ class STTSession:
         """Send text (JSON config, END_OF_AUDIO, etc.)."""
         await self._session.send_text(data)
 
-    async def send_sample(self, sample: AudioSample, *, chunk_ms: int = 200) -> None:
-        """Stream sample in chunks with realistic pacing."""
-        for chunk in sample.chunks(chunk_ms):
-            await self._session.send_bytes(chunk)
-            await asyncio.sleep(chunk_ms / 1000)
+    async def send_sample(
+        self,
+        sample: AudioSample,
+        *,
+        chunk_ms: int = 200,
+        encoding: AudioEncoding = AudioEncoding.FLOAT32,
+    ) -> None:
+        """Stream sample in chunks with realistic pacing.
+
+        encoding controls wire format:
+          FLOAT32      → binary frame, raw float32 (default)
+          PCM16        → binary frame, raw int16
+          PCM16_BASE64 → text frame, base64-encoded int16
+        """
+        delay = chunk_ms / 1000
+        match encoding:
+            case AudioEncoding.FLOAT32:
+                for chunk in sample.chunks(chunk_ms):
+                    await self._session.send_bytes(chunk)
+                    await asyncio.sleep(delay)
+            case AudioEncoding.PCM16:
+                for chunk in sample.chunks_pcm16(chunk_ms):
+                    await self._session.send_bytes(chunk)
+                    await asyncio.sleep(delay)
+            case AudioEncoding.PCM16_BASE64:
+                for chunk in sample.chunks_pcm16(chunk_ms):
+                    await self._session.send_text(base64.b64encode(chunk).decode())
+                    await asyncio.sleep(delay)
 
     async def receive_text(self, *, timeout: float | None = None) -> str:
         """Receive text frame and accumulate as fragment."""
