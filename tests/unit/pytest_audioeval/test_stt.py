@@ -165,6 +165,7 @@ async def test_STTSession_send_sample_pcm16_base64(mocker: MockerFixture) -> Non
     mock_ws.send_bytes.assert_not_awaited()
     # Verify it's valid base64
     import base64
+
     first_text = mock_ws.send_text.call_args_list[0][0][0]
     decoded = base64.b64decode(first_text)
     samples_per_chunk = (16_000 * 200) // 1000
