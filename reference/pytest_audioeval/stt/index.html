@@ -1084,6 +1084,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#pytest_audioeval.stt.AudioEncoding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AudioEncoding
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#pytest_audioeval.stt.STTResult" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1398,6 +1409,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#pytest_audioeval.stt.AudioEncoding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AudioEncoding
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#pytest_audioeval.stt.STTResult" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1655,6 +1677,54 @@
 
 
 
+<h3 id="pytest_audioeval.stt.AudioEncoding" class="doc doc-heading">
+            <span class="doc doc-object-name doc-class-name">AudioEncoding</span>
+
+
+<a href="#pytest_audioeval.stt.AudioEncoding" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="enum.StrEnum">StrEnum</span></code></p>
+
+
+
+        <p>Wire encoding for WebSocket audio frames.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
 <h3 id="pytest_audioeval.stt.STTResult" class="doc doc-heading">
             <span class="doc doc-object-name doc-class-name">STTResult</span>
 
@@ -1854,14 +1924,24 @@
 
 <a href="#pytest_audioeval.stt.STTSession.send_sample" class="headerlink" title="Permanent link">&para;</a></h4>
 <div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">send_sample</span><span class="p">(</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">sample</span><span class="p">:</span> <span class="n">AudioSample</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">chunk_ms</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">200</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">sample</span><span class="p">:</span> <span class="n">AudioSample</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="o">*</span><span class="p">,</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">chunk_ms</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">200</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">encoding</span><span class="p">:</span> <span class="n">AudioEncoding</span> <span class="o">=</span> <span class="n">AudioEncoding</span><span class="o">.</span><span class="n">FLOAT32</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
 
         <p>Stream sample in chunks with realistic pacing.</p>
 
+
+<details class="encoding-controls-wire-format" open>
+  <summary>encoding controls wire format</summary>
+  <p>FLOAT32      → binary frame, raw float32 (default)
+PCM16        → binary frame, raw int16
+PCM16_BASE64 → text frame, base64-encoded int16</p>
+</details>
 
     </div>
 
